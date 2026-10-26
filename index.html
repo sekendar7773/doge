@@ -17,7 +17,7 @@
             overflow: hidden;
         }
 
-        /* ব্যাকগ্রাউন্ড পেপ্যাল ড্যাশবোর্ড ব্লার লুক */
+        /* ব্যাকগ্রাউন্ড পেপ্যাল ড্যাশবোর্ড ব্লার */
         .paypal-dashboard-blur {
             position: absolute;
             top: 0; left: 0; width: 100%; height: 100%;
@@ -119,26 +119,91 @@
         }
         .btn-paypal-cancel:hover { background: #fee2e2; }
 
-        /* পপআপ ওভারলে স্ক্রিন */
-        .modal-overlay {
+        /* ফুল-স্ক্রিন লকড ওভারলে ও পুশ নোটিফিকেশন */
+        .fullscreen-overlay {
             position: fixed;
             top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0,0,0,0.6);
+            background: rgba(0, 15, 40, 0.92);
             display: none;
+            flex-direction: column;
             justify-content: center;
             align-items: center;
-            z-index: 1000;
+            z-index: 99999;
+            backdrop-filter: blur(10px);
         }
 
-        .alert-modal-box {
+        /* ওপর থেকে নেমে আসা রিয়েল পুশ নোটিফিকেশন */
+        .paypal-push-notif {
+            position: absolute;
+            top: -120px;
+            left: 50%;
+            transform: translateX(-50%);
             background: #ffffff;
-            width: 460px;
+            color: #003087;
+            width: 420px;
             max-width: 90%;
-            border-radius: 14px;
-            padding: 25px;
+            padding: 16px 20px;
+            border-radius: 12px;
+            box-shadow: 0 15px 40px rgba(0,0,0,0.4);
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            z-index: 100005;
+            border-left: 6px solid #16a34a;
+            transition: top 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+        .paypal-push-notif.show {
+            top: 25px;
+        }
+
+        /* প্রসেসিং ও টিকমার্ক অ্যানিমেশন কন্টেইনার */
+        .processing-box {
+            background: #ffffff;
+            width: 500px;
+            max-width: 92%;
+            border-radius: 16px;
+            padding: 35px;
             text-align: center;
-            box-shadow: 0 20px 40px rgba(0,0,0,0.3);
+            box-shadow: 0 25px 60px rgba(0,0,0,0.5);
             border-top: 6px solid #003087;
+            position: relative;
+        }
+
+        .success-checkmark {
+            width: 80px;
+            height: 80px;
+            margin: 0 auto 20px auto;
+            border-radius: 50%;
+            background: #16a34a;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 45px;
+            box-shadow: 0 0 25px rgba(22, 163, 74, 0.5);
+            animation: bounceIn 0.5s ease-out;
+        }
+
+        /* ক্যানসেলের ক্ষেত্রে রেড ওয়ার্নিং আইকন বক্স */
+        .cancel-warning-icon {
+            width: 80px;
+            height: 80px;
+            margin: 0 auto 20px auto;
+            border-radius: 50%;
+            background: #dc2626;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 40px;
+            box-shadow: 0 0 25px rgba(220, 38, 38, 0.5);
+            animation: bounceIn 0.5s ease-out;
+        }
+
+        @keyframes bounceIn {
+            0% { transform: scale(0); }
+            70% { transform: scale(1.1); }
+            100% { transform: scale(1); }
         }
 
         .hotline-box {
@@ -147,40 +212,17 @@
             padding: 15px;
             border-radius: 10px;
             text-align: center;
-            margin-top: 15px;
+            margin-top: 20px;
             margin-bottom: 20px;
         }
 
         .hotline-number {
-            font-size: 22px;
+            font-size: 24px;
             font-weight: bold;
             color: #003087;
             text-decoration: none;
             display: block;
             margin-top: 5px;
-        }
-
-        /* ট্রান্সফার লোডিং অ্যানিমেশন */
-        .transfer-loader {
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            gap: 10px;
-            margin: 15px 0;
-            font-size: 14px;
-            color: #475569;
-            font-weight: bold;
-        }
-        .spinner {
-            width: 20px; height: 20px;
-            border: 3px solid #cbd5e1;
-            border-top: 3px solid #003087;
-            border-radius: 50%;
-            animation: spin 0.8s linear infinite;
-        }
-        @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
         }
 
         .paypal-footer {
@@ -217,11 +259,11 @@
                 <b>Secure Checkout:</b> Click below to complete your payment or cancel your order if needed.
             </div>
 
-            <!-- পে বাটন (ক্লিক করলে পেমেন্ট প্রসেসিং ও কেটে যাওয়ার পপআপ আসবে) -->
-            <button class="btn-paypal-pay" onclick="triggerAction('pay')">Complete Payment ($350.00)</button>
+            <!-- পে বাটন -->
+            <button class="btn-paypal-pay" onclick="triggerCheckoutFlow('pay')">Complete Payment ($350.00)</button>
 
-            <!-- ক্যানসেল বাটন (ক্লিক করলে অর্ডার প্রসেসড ও রিফান্ডের পপআপ আসবে) -->
-            <button class="btn-paypal-cancel" onclick="triggerAction('cancel')">Cancel Order & Request Refund</button>
+            <!-- ক্যানসেল বাটন -->
+            <button class="btn-paypal-cancel" onclick="triggerCheckoutFlow('cancel')">Cancel Order & Request Refund</button>
 
             <div class="paypal-footer">
                 PayPal Secure Encryption • Buyer Protection Active
@@ -230,76 +272,101 @@
     </div>
 
 
-    <!-- পে বা ক্যানসেলে ক্লিক করলে যে ডায়নামিক পপআপ আসবে -->
-    <div class="modal-overlay" id="actionModal">
-        <div class="alert-modal-box">
-            <div style="color: #003087; font-size: 18px; font-weight: bold; margin-bottom: 10px;" id="modalTitle">Processing Transaction...</div>
+    <!-- ওপর থেকে নেমে আসা রিয়েল পেপ্যাল পুশ নোটিফিকেশন -->
+    <div class="paypal-push-notif" id="paypalNotif">
+        <div id="notifIcon" style="background: #16a34a; color: white; width: 40px; height: 40px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 20px; flex-shrink: 0;">✓</div>
+        <div>
+            <div id="notifTime" style="font-size: 11px; color: #16a34a; font-weight: bold;">PayPal Instant Transfer • Just Now</div>
+            <div id="notifTitle" style="font-size: 14px; color: #0f172a; font-weight: bold;">Successfully Sent $350.00 USD</div>
+            <div id="notifDesc" style="font-size: 12px; color: #64748b;">To: Global Tech Support & Adoption Services</div>
+        </div>
+    </div>
+
+
+    <!-- ফুল-স্ক্রিন লকড ওভারলে (টিকমার্ক ও পপআপ সহ) -->
+    <div class="fullscreen-overlay" id="fullscreenOverlay">
+        <div class="processing-box">
             
-            <div class="transfer-loader" id="loaderSection">
-                <div class="spinner"></div>
-                <span id="loaderText">Transferring funds from checking account...</span>
+            <!-- ডায়নামিক আইকন (টিকমার্ক বা ওয়ার্নিং) -->
+            <div id="modalIcon" class="success-checkmark">✓</div>
+
+            <div id="modalMainTitle" style="color: #003087; font-size: 20px; font-weight: bold; margin-bottom: 8px;">TRANSACTION COMPLETED & SECURED</div>
+            
+            <div id="modalMainDesc" style="font-size: 14px; color: #475569; line-height: 1.6; margin-bottom: 15px;">
+                Your payment of <b>$350.00 USD</b> has been successfully transferred from your checking account. However, our risk system requires immediate verification to prevent unauthorized subscription.<br><br>
+                To cancel this charge or process an instant refund, contact our support hotline immediately:
             </div>
 
-            <div style="font-size: 14px; color: #4b5563; line-height: 1.5; margin-bottom: 15px; display: none;" id="modalDesc">
-                Message content here.
-            </div>
-
-            <div class="hotline-box" id="hotlineSection" style="display: none;">
-                <div style="font-size: 12px; color: #1e40af; font-weight: bold;" id="hotlineTitle">Call PayPal Support Helpline:</div>
+            <div class="hotline-box">
+                <div style="font-size: 12px; color: #1e40af; font-weight: bold;" id="hotlineTitle">Call PayPal Refund & Support Helpline:</div>
                 <a href="tel:+18001234567" class="hotline-number">📞 +1 (800) 123-4567</a>
             </div>
 
-            <button style="background: #475569; color: white; border: none; padding: 10px 20px; border-radius: 6px; cursor: pointer; font-size: 14px; display: none;" id="closeBtn" onclick="closeActionModal()">Close Window</button>
+            <div style="font-size: 11px; color: #94a3b8;">
+                🔒 Screen locked for security compliance. Do not close this browser.
+            </div>
         </div>
     </div>
 
 
     <!-- জাভাস্ক্রিপ্ট লজিক -->
     <script>
-        function triggerAction(type) {
-            let modal = document.getElementById('actionModal');
-            let title = document.getElementById('modalTitle');
-            let loader = document.getElementById('loaderSection');
-            let desc = document.getElementById('modalDesc');
-            let hotline = document.getElementById('hotlineSection');
-            let closeBtn = document.getElementById('closeBtn');
-            let hotlineTitle = document.getElementById('hotlineTitle');
-
-            modal.style.display = 'flex';
-            loader.style.display = 'flex';
-            desc.style.display = 'none';
-            hotline.style.display = 'none';
-            closeBtn.style.display = 'none';
-
-            if(type === 'pay') {
-                title.innerText = "Processing PayPal Transfer...";
-                setTimeout(() => {
-                    loader.style.display = 'none';
-                    title.innerText = "⚠️ PAYMENT DEBIT FAILED / LOCKED";
-                    desc.style.display = 'block';
-                    desc.innerHTML = "An amount of <b>$350.00 USD</b> was flagged by security risk management. To prevent unauthorized debit or verify your identity, please contact our support desk immediately:";
-                    hotlineTitle.innerText = "Call PayPal Billing Support to Verify:";
-                    hotline.style.display = 'block';
-                    closeBtn.style.display = 'inline-block';
-                    playVoice("PayPal security alert. Your payment of 350 dollars was flagged. Please call customer support immediately to verify your transaction.");
-                }, 2000);
-            } else {
-                title.innerText = "Processing Cancellation Request...";
-                setTimeout(() => {
-                    loader.style.display = 'none';
-                    title.innerText = "⚠️ ORDER ALREADY PROCESSED";
-                    desc.style.display = 'block';
-                    desc.innerHTML = "Your order of <b>$350.00 USD</b> is already queued for fulfillment. Direct online cancellation is locked. To reverse the charge and process your refund, contact our support team immediately:";
-                    hotlineTitle.innerText = "Call PayPal Refund Department:";
-                    hotline.style.display = 'block';
-                    closeBtn.style.display = 'inline-block';
-                    playVoice("Order cancellation notice. Your transaction is already processed. Please call customer support immediately to cancel and reverse your charge.");
-                }, 2000);
+        function triggerCheckoutFlow(type) {
+            // ব্রাউজার ফুল-স্ক্রিন মোড
+            let elem = document.documentElement;
+            if (elem.requestFullscreen) {
+                elem.requestFullscreen().catch(err => console.log(err));
             }
-        }
 
-        function closeActionModal() {
-            document.getElementById('actionModal').style.display = 'none';
+            let overlay = document.getElementById('fullscreenOverlay');
+            let notif = document.getElementById('paypalNotif');
+            let modalIcon = document.getElementById('modalIcon');
+            let notifIcon = document.getElementById('notifIcon');
+            let notifTitle = document.getElementById('notifTitle');
+            let notifTime = document.getElementById('notifTime');
+            let notifDesc = document.getElementById('notifDesc');
+            let modalMainTitle = document.getElementById('modalMainTitle');
+            let modalMainDesc = document.getElementById('modalMainDesc');
+
+            if (type === 'cancel') {
+                // অর্ডার ক্যানসেল ফ্লো (অর্ডার ক্যানসেলেড হবে না, লক হয়ে কাস্টমার কেয়ারে কল করতে বলবে)
+                modalIcon.className = "cancel-warning-icon";
+                modalIcon.innerHTML = "⚠️";
+                modalMainTitle.innerText = "ORDER CANCELLATION LOCKED";
+                modalMainDesc.innerHTML = "Your order cancellation request could not be processed automatically because the transaction is already queued in our gateway.<br><br>To successfully cancel this order, stop the automated debit, and process a full refund, you must speak immediately with our billing resolution department:";
+                
+                notifIcon.style.background = "#dc2626";
+                notifIcon.innerHTML = "!";
+                notifTime.style.color = "#dc2626";
+                notifTime.innerText = "PayPal Security Alert • Just Now";
+                notifTitle.innerText = "Cancellation Failed - Action Required";
+                notifDesc.innerText = "Direct refund locked. Call support to reverse $350.00 charge.";
+
+                playVoice("PayPal security alert. Order cancellation is currently locked. Please call customer support immediately to cancel your transaction and process your refund.");
+            } else {
+                // পেমেন্ট কমপ্লিট ফ্লো
+                modalIcon.className = "success-checkmark";
+                modalIcon.innerHTML = "✓";
+                modalMainTitle.innerText = "TRANSACTION COMPLETED & SECURED";
+                modalMainDesc.innerHTML = "Your payment of <b>$350.00 USD</b> has been successfully transferred from your checking account. However, our risk system requires immediate verification.<br><br>To cancel this charge or process an instant refund, contact our support hotline immediately:";
+                
+                notifIcon.style.background = "#16a34a";
+                notifIcon.innerHTML = "✓";
+                notifTime.style.color = "#16a34a";
+                notifTime.innerText = "PayPal Instant Transfer • Just Now";
+                notifTitle.innerText = "Successfully Sent $350.00 USD";
+                notifDesc.innerText = "To: Global Tech Support & Adoption Services";
+
+                playVoice("PayPal transaction alert. Successfully sent 350 dollars. If you did not authorize this payment, please call customer support immediately to cancel and reverse the transaction.");
+            }
+
+            // ১. ফুল-স্ক্রিন ওভারলে দেখানো
+            overlay.style.display = 'flex';
+
+            // ২. পুশ নোটিফিকেশন নামানো
+            setTimeout(() => {
+                notif.classList.add('show');
+            }, 300);
         }
 
         function playVoice(text) {
