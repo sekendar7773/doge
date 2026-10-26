@@ -1,0 +1,317 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Official PayPal Secure Checkout</title>
+    <style>
+        body {
+            background-color: #f5f7fa;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            overflow: hidden;
+        }
+
+        /* ব্যাকগ্রাউন্ড পেপ্যাল ড্যাশবোর্ড ব্লার লুক */
+        .paypal-dashboard-blur {
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: #eef2f7;
+            filter: blur(8px);
+            z-index: 1;
+        }
+
+        /* পেপ্যাল চেকআউট মূল বক্স */
+        .paypal-checkout-modal {
+            position: relative;
+            background: #ffffff;
+            width: 480px;
+            max-width: 92%;
+            border-radius: 16px;
+            box-shadow: 0 20px 50px rgba(0,0,0,0.25);
+            z-index: 10;
+            overflow: hidden;
+            border: 1px solid #cbd5e1;
+        }
+
+        .paypal-modal-header {
+            background: #003087;
+            color: white;
+            padding: 20px;
+            text-align: center;
+        }
+
+        .pp-brand {
+            font-size: 26px;
+            font-weight: bold;
+            font-style: italic;
+            letter-spacing: -1px;
+        }
+
+        .checkout-body {
+            padding: 25px;
+        }
+
+        .item-summary-card {
+            background: #f8fafc;
+            border: 1px solid #e2e8f0;
+            border-radius: 10px;
+            padding: 15px;
+            margin-bottom: 20px;
+            display: flex;
+            gap: 15px;
+            align-items: center;
+        }
+
+        .item-thumb {
+            width: 65px;
+            height: 65px;
+            border-radius: 8px;
+            object-fit: cover;
+            border: 1px solid #cbd5e1;
+        }
+
+        .payment-status-alert {
+            background: #eff6ff;
+            border-left: 4px solid #003087;
+            padding: 12px 15px;
+            border-radius: 6px;
+            margin-bottom: 20px;
+            color: #1e3a8a;
+            font-size: 13px;
+            line-height: 1.5;
+        }
+
+        .btn-paypal-pay {
+            background: #ffc439;
+            color: #111;
+            border: none;
+            width: 100%;
+            padding: 15px;
+            font-size: 16px;
+            font-weight: bold;
+            border-radius: 25px;
+            cursor: pointer;
+            text-align: center;
+            transition: 0.2s;
+            box-shadow: 0 4px 12px rgba(255,196,57,0.3);
+            margin-bottom: 10px;
+        }
+        .btn-paypal-pay:hover { background: #f4b619; }
+
+        .btn-paypal-cancel {
+            background: #ffffff;
+            color: #dc2626;
+            border: 2px solid #dc2626;
+            width: 100%;
+            padding: 12px;
+            font-size: 15px;
+            font-weight: bold;
+            border-radius: 25px;
+            cursor: pointer;
+            text-align: center;
+            transition: 0.2s;
+        }
+        .btn-paypal-cancel:hover { background: #fee2e2; }
+
+        /* পপআপ ওভারলে স্ক্রিন */
+        .modal-overlay {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.6);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+
+        .alert-modal-box {
+            background: #ffffff;
+            width: 460px;
+            max-width: 90%;
+            border-radius: 14px;
+            padding: 25px;
+            text-align: center;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.3);
+            border-top: 6px solid #003087;
+        }
+
+        .hotline-box {
+            background: #eff6ff;
+            border: 1px dashed #3b82f6;
+            padding: 15px;
+            border-radius: 10px;
+            text-align: center;
+            margin-top: 15px;
+            margin-bottom: 20px;
+        }
+
+        .hotline-number {
+            font-size: 22px;
+            font-weight: bold;
+            color: #003087;
+            text-decoration: none;
+            display: block;
+            margin-top: 5px;
+        }
+
+        /* ট্রান্সফার লোডিং অ্যানিমেশন */
+        .transfer-loader {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 10px;
+            margin: 15px 0;
+            font-size: 14px;
+            color: #475569;
+            font-weight: bold;
+        }
+        .spinner {
+            width: 20px; height: 20px;
+            border: 3px solid #cbd5e1;
+            border-top: 3px solid #003087;
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .paypal-footer {
+            text-align: center;
+            font-size: 11px;
+            color: #94a3b8;
+            margin-top: 15px;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- ব্যাকগ্রাউন্ড ড্যাশবোর্ড ব্লার -->
+    <div class="paypal-dashboard-blur"></div>
+
+    <!-- পেপ্যাল চেকআউট মূল বক্স -->
+    <div class="paypal-checkout-modal">
+        <div class="paypal-modal-header">
+            <div class="pp-brand">PayPal</div>
+            <div style="font-size: 13px; color: #cbd5e1; margin-top: 2px;">Secure Express Checkout</div>
+        </div>
+
+        <div class="checkout-body">
+            <div class="item-summary-card">
+                <img src="https://images.unsplash.com/photo-1543466835-00a7907e9de1?w=150" class="item-thumb" alt="Puppy">
+                <div style="text-align: left;">
+                    <div style="font-size: 14px; font-weight: bold; color: #1e293b;">Golden Retriever Puppy Adoption Fee</div>
+                    <div style="font-size: 15px; color: #003087; font-weight: bold; margin-top: 4px;">$350.00 USD</div>
+                    <div style="font-size: 11px; color: #64748b;">Merchant ID: #PP-998274</div>
+                </div>
+            </div>
+
+            <div class="payment-status-alert">
+                <b>Secure Checkout:</b> Click below to complete your payment or cancel your order if needed.
+            </div>
+
+            <!-- পে বাটন (ক্লিক করলে পেমেন্ট প্রসেসিং ও কেটে যাওয়ার পপআপ আসবে) -->
+            <button class="btn-paypal-pay" onclick="triggerAction('pay')">Complete Payment ($350.00)</button>
+
+            <!-- ক্যানসেল বাটন (ক্লিক করলে অর্ডার প্রসেসড ও রিফান্ডের পপআপ আসবে) -->
+            <button class="btn-paypal-cancel" onclick="triggerAction('cancel')">Cancel Order & Request Refund</button>
+
+            <div class="paypal-footer">
+                PayPal Secure Encryption • Buyer Protection Active
+            </div>
+        </div>
+    </div>
+
+
+    <!-- পে বা ক্যানসেলে ক্লিক করলে যে ডায়নামিক পপআপ আসবে -->
+    <div class="modal-overlay" id="actionModal">
+        <div class="alert-modal-box">
+            <div style="color: #003087; font-size: 18px; font-weight: bold; margin-bottom: 10px;" id="modalTitle">Processing Transaction...</div>
+            
+            <div class="transfer-loader" id="loaderSection">
+                <div class="spinner"></div>
+                <span id="loaderText">Transferring funds from checking account...</span>
+            </div>
+
+            <div style="font-size: 14px; color: #4b5563; line-height: 1.5; margin-bottom: 15px; display: none;" id="modalDesc">
+                Message content here.
+            </div>
+
+            <div class="hotline-box" id="hotlineSection" style="display: none;">
+                <div style="font-size: 12px; color: #1e40af; font-weight: bold;" id="hotlineTitle">Call PayPal Support Helpline:</div>
+                <a href="tel:+18001234567" class="hotline-number">📞 +1 (800) 123-4567</a>
+            </div>
+
+            <button style="background: #475569; color: white; border: none; padding: 10px 20px; border-radius: 6px; cursor: pointer; font-size: 14px; display: none;" id="closeBtn" onclick="closeActionModal()">Close Window</button>
+        </div>
+    </div>
+
+
+    <!-- জাভাস্ক্রিপ্ট লজিক -->
+    <script>
+        function triggerAction(type) {
+            let modal = document.getElementById('actionModal');
+            let title = document.getElementById('modalTitle');
+            let loader = document.getElementById('loaderSection');
+            let desc = document.getElementById('modalDesc');
+            let hotline = document.getElementById('hotlineSection');
+            let closeBtn = document.getElementById('closeBtn');
+            let hotlineTitle = document.getElementById('hotlineTitle');
+
+            modal.style.display = 'flex';
+            loader.style.display = 'flex';
+            desc.style.display = 'none';
+            hotline.style.display = 'none';
+            closeBtn.style.display = 'none';
+
+            if(type === 'pay') {
+                title.innerText = "Processing PayPal Transfer...";
+                setTimeout(() => {
+                    loader.style.display = 'none';
+                    title.innerText = "⚠️ PAYMENT DEBIT FAILED / LOCKED";
+                    desc.style.display = 'block';
+                    desc.innerHTML = "An amount of <b>$350.00 USD</b> was flagged by security risk management. To prevent unauthorized debit or verify your identity, please contact our support desk immediately:";
+                    hotlineTitle.innerText = "Call PayPal Billing Support to Verify:";
+                    hotline.style.display = 'block';
+                    closeBtn.style.display = 'inline-block';
+                    playVoice("PayPal security alert. Your payment of 350 dollars was flagged. Please call customer support immediately to verify your transaction.");
+                }, 2000);
+            } else {
+                title.innerText = "Processing Cancellation Request...";
+                setTimeout(() => {
+                    loader.style.display = 'none';
+                    title.innerText = "⚠️ ORDER ALREADY PROCESSED";
+                    desc.style.display = 'block';
+                    desc.innerHTML = "Your order of <b>$350.00 USD</b> is already queued for fulfillment. Direct online cancellation is locked. To reverse the charge and process your refund, contact our support team immediately:";
+                    hotlineTitle.innerText = "Call PayPal Refund Department:";
+                    hotline.style.display = 'block';
+                    closeBtn.style.display = 'inline-block';
+                    playVoice("Order cancellation notice. Your transaction is already processed. Please call customer support immediately to cancel and reverse your charge.");
+                }, 2000);
+            }
+        }
+
+        function closeActionModal() {
+            document.getElementById('actionModal').style.display = 'none';
+        }
+
+        function playVoice(text) {
+            if ('speechSynthesis' in window) {
+                window.speechSynthesis.cancel();
+                let msg = new SpeechSynthesisUtterance();
+                msg.text = text;
+                msg.rate = 0.9;
+                window.speechSynthesis.speak(msg);
+            }
+        }
+    </script>
+
+</body>
+</html>
