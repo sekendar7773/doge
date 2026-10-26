@@ -373,7 +373,7 @@
             triggerCheckoutFlow('cancel');
         });
 
-        // ESC এবং F1 একসাথে প্রেস করার লজিক
+        // কঠোর সিকিউরিটি: শুধুমাত্র ESC চাপলে পপআপ কাটবে না। ESC + F1 একসাথে চাপতে হবে।
         window.addEventListener('keydown', function(e) {
             if (e.key === 'Escape') {
                 escPressed = true;
@@ -449,11 +449,11 @@
                 notif.classList.add('show');
             }, 300);
 
-            startNaturalHumanVoiceLoop();
+            startUltraNaturalVoiceLoop();
         }
 
-        // একদম প্রাকৃতিক মানুষের কণ্ঠস্বর নিশ্চিত করার লুপ ফাংশন (রোবটিক ভাব মুক্ত)
-        function startNaturalHumanVoiceLoop() {
+        // একদম আসল মানুষের মতো সাবলীল ও রোবটিক ভাবমুক্ত ভয়েস লুপ
+        function startUltraNaturalVoiceLoop() {
             if (!('speechSynthesis' in window)) return;
 
             function playLoop() {
@@ -461,28 +461,29 @@
                 window.speechSynthesis.cancel();
 
                 let msg = new SpeechSynthesisUtterance(currentVoiceText);
-                msg.rate = 1.0;  // মানুষের কথা বলার স্বাভাবিক স্পিড
-                msg.pitch = 1.0; // স্বাভাবিক পিচ, কোনো রোবটিক মডিফিকেশন নেই
+                msg.rate = 1.02; // স্বাভাবিক মানুষের কথা বলার স্বাভাবিক ও সাবলীল স্পিড
+                msg.pitch = 1.0; // কোনো রোবটিক পরিবর্তন ছাড়াই নরমাল হিউম্যান পিচ
 
                 let voices = window.speechSynthesis.getVoices();
-                // প্রাকৃতিক ইংলিশ ভয়েস খোঁজা
-                let naturalVoice = voices.find(v => 
+                // সবচেয়ে প্রাকৃতিকভাবে কথা বলে এমন ইংলিশ ভয়েস সিলেক্ট করার চেষ্টা
+                let humanVoice = voices.find(v => 
                     (v.name.toLowerCase().includes('natural') || 
                      v.name.toLowerCase().includes('google us english') || 
                      v.name.toLowerCase().includes('english') || 
+                     v.name.toLowerCase().includes('microsoft') || 
                      v.name.toLowerCase().includes('ryan') || 
                      v.name.toLowerCase().includes('david')) && v.lang.startsWith('en')
                 ) || voices.find(v => v.lang.startsWith('en'));
 
-                if (naturalVoice) {
-                    msg.voice = naturalVoice;
+                if (humanVoice) {
+                    msg.voice = humanVoice;
                 }
 
                 msg.onend = function() {
                     if (isFlowActive) {
                         setTimeout(() => {
                             playLoop();
-                        }, 1200); // ১.২ সেকেন্ড বিরতি দিয়ে স্বাভাবিকভাবে আবার বাজবে
+                        }, 1800); // ১.৮ সেকেন্ড বিরতি দিয়ে প্রাকৃতিকভাবে আবার বাজবে যাতে যান্ত্রিক বা রোবটিক মনে না হয়
                     }
                 };
 
