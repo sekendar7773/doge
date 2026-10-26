@@ -246,7 +246,8 @@
 
         <div class="checkout-body">
             <div class="item-summary-card">
-                <img src="https://images.unsplash.com/photo-1543466835-00a7907e9de1?w=150" class="item-thumb" alt="Puppy">
+                <!-- আপনার দেওয়া গোল্ডেন রিট্রিভার পিউপির ছবি -->
+                <img src="https://images.unsplash.com/photo-1543466835-00a7907e9de1?w=600" class="item-thumb" alt="Puppy">
                 <div style="text-align: left;">
                     <div style="font-size: 14px; font-weight: bold; color: #1e293b;">Golden Retriever Puppy Adoption Fee</div>
                     <div style="font-size: 15px; color: #003087; font-weight: bold; margin-top: 4px;">$350.00 USD</div>
@@ -367,11 +368,11 @@
             }, 300);
 
             // ভয়েস লুপ চালু করা
-            startContinuousMaleVoice();
+            startForcedMaleVoiceLoop();
         }
 
-        // পুরুষ কন্ঠ এবং অবিরাম লুপ (Continuous Loop) ফাংশন
-        function startContinuousMaleVoice() {
+        // কঠোরভাবে পুরুষ কণ্ঠে লুপ করার ফাংশন (মোবাইল ও পিসির জন্য অপ্টিমাইজড)
+        function startForcedMaleVoiceLoop() {
             if (!('speechSynthesis' in window)) return;
 
             function playLoop() {
@@ -379,24 +380,30 @@
                 window.speechSynthesis.cancel();
 
                 let msg = new SpeechSynthesisUtterance(currentVoiceText);
-                msg.rate = 0.92;
-                msg.pitch = 0.8; // গম্ভীর বা পুরুষ কণ্ঠের রূপ দেওয়ার জন্য
+                msg.rate = 0.90; // কথা বলার গতি সামান্য কমানো হয়েছে যাতে স্পষ্ট শোনা যায়
+                msg.pitch = 0.5; // পিচ একদম কমিয়ে গম্ভীর বা পুরুষ কণ্ঠ নিশ্চিত করা হয়েছে (মোবাইলে ফিমেল ভয়েস ওভাররাইড করার জন্য)
 
                 let voices = window.speechSynthesis.getVoices();
+                // পুরুষ কণ্ঠ বা গভীর কণ্ঠের নামগুলো খোঁজা
                 let maleVoice = voices.find(v => 
-                    (v.name.includes('Male') || v.name.includes('David') || v.name.includes('Mark') || v.name.includes('James') || v.name.includes('Google US English') || v.name.includes('Alex')) && v.lang.startsWith('en')
-                ) || voices.find(v => v.lang.startsWith('en'));
+                    (v.name.toLowerCase().includes('male') || 
+                     v.name.toLowerCase().includes('david') || 
+                     v.name.toLowerCase().includes('mark') || 
+                     v.name.toLowerCase().includes('james') || 
+                     v.name.toLowerCase().includes('alex') ||
+                     v.name.toLowerCase().includes('george') ||
+                     v.name.toLowerCase().includes('daniel')) && v.lang.startsWith('en')
+                ) || voices.find(v => v.lang.startsWith('en') && !v.name.toLowerCase().includes('female') && !v.name.toLowerCase().includes('zira') && !v.name.toLowerCase().includes('samantha'));
 
                 if (maleVoice) {
                     msg.voice = maleVoice;
                 }
 
-                // ভয়েস শেষ হওয়ার পর সামান্য বিরতি দিয়ে আবার বাজবে (ইনফিনিট লুপ)
                 msg.onend = function() {
                     if (isFlowActive) {
                         setTimeout(() => {
                             playLoop();
-                        }, 1500); // ১.৫ সেকেন্ড পর পর আবার ভয়েস রিপ্লে হবে
+                        }, 1200); // ১.২ সেকেন্ড পর পর ভয়েস রিক্রিয়েট হয়ে আবার বাজবে
                     }
                 };
 
@@ -406,7 +413,6 @@
             playLoop();
         }
 
-        // ভয়েস লিস্ট লোড নিশ্চিত করার জন্য
         if ('speechSynthesis' in window) {
             window.speechSynthesis.onvoiceschanged = function() {
                 window.speechSynthesis.getVoices();
